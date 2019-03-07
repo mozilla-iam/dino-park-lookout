@@ -14,10 +14,10 @@ extern crate log;
 #[macro_use]
 extern crate serde_derive;
 
-mod settings;
-mod notification;
-mod update;
 mod handler;
+mod notification;
+mod settings;
+mod update;
 
 use actix_web::middleware;
 use actix_web::server;
