@@ -330,6 +330,7 @@ dependencies = [
 [[package]]
 name = "cis_client"
 version = "0.0.1"
+source = "git+https://github.com/fiji-flo/cis_client-rust#4f65c06da169a4139500f0bc18e68a12797598fd"
 dependencies = [
  "biscuit 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -520,7 +521,7 @@ dependencies = [
  "actix 0.7.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "actix-web 0.7.18 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "cis_client 0.0.1",
+ "cis_client 0.0.1 (git+https://github.com/fiji-flo/cis_client-rust)",
  "cis_profile 0.1.0 (git+https://github.com/fiji-flo/cis_profile-rust)",
  "config 0.9.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -2450,6 +2451,7 @@ dependencies = [
 "checksum cfg-if 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)" = "11d43355396e872eefb45ce6342e4374ed7bc2b3a502d1b28e36d6e23c05d1f4"
 "checksum chrono 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)" = "45912881121cb26fad7c38c17ba7daa18764771836b34fab7d3fbd93ed633878"
 "checksum chrono-tz 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)" = "44420a821d3075c6b4dcdba557104274a240b5b6e323dc17136507e96ca2db59"
+"checksum cis_client 0.0.1 (git+https://github.com/fiji-flo/cis_client-rust)" = "<none>"
 "checksum cis_profile 0.1.0 (git+https://github.com/fiji-flo/cis_profile-rust)" = "<none>"
 "checksum cloudabi 0.0.3 (registry+https://github.com/rust-lang/crates.io-index)" = "ddfc5b9aa5d4507acaf872de71051dfd0e309860e88966e1051e462a077aac4f"
 "checksum condvar_store 0.0.1 (git+https://github.com/fiji-flo/condvar_store)" = "<none>"

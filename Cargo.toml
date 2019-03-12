@@ -5,8 +5,7 @@ authors = ["Florian Merz <flomerz@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-#cis_client = { git = "https://github.com/fiji-flo/cis_client-rust" }
-cis_client = { path = "../cis_client-rust" }
+cis_client = { git = "https://github.com/fiji-flo/cis_client-rust" }
 cis_profile = { git = "https://github.com/fiji-flo/cis_profile-rust", features = ["aws", "vendored"] }
 actix = "0.7"
 actix-web = "0.7"
