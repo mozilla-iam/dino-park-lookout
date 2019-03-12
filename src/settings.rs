@@ -6,6 +6,8 @@ use std::env;
 pub struct DinoParkSettings {
     pub search_update_endpoint: String,
     pub orgchart_update_endpoint: String,
+    pub search_bulk_endpoint: String,
+    pub orgchart_bulk_endpoint: String,
 }
 
 #[derive(Debug, Deserialize)]

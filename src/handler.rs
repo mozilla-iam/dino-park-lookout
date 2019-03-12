@@ -1,6 +1,8 @@
+use crate::bulk::Bulk;
 use crate::notification::Notification;
 use crate::settings::DinoParkSettings;
 use crate::update::update;
+use crate::update::update_batch;
 use actix::prelude::*;
 use actix_web::error;
 use actix_web::http;
@@ -43,6 +45,24 @@ fn update_event<T: CisClientTrait + Clone + 'static>(
         .responder()
 }
 
+fn bulk_update<T: CisClientTrait + Clone + 'static>(
+    req: HttpRequest<AppState<T>>,
+) -> FutureResponse<HttpResponse> {
+    req.json::<Bulk>()
+        .from_err()
+        .and_then(move |b| {
+            req.state()
+                .executor
+                .send(b)
+                .from_err()
+                .and_then(|res| match res {
+                    Ok(v) => Ok(HttpResponse::Ok().content_type("application/json").body(v)),
+                    Err(_) => Ok(HttpResponse::InternalServerError().into()),
+                })
+        })
+        .responder()
+}
+
 impl<T: CisClientTrait + Clone + 'static> UpdateExecutor<T> {
     pub fn new(cis_client: T, dino_park_settings: Arc<DinoParkSettings>) -> Self {
         UpdateExecutor {
@@ -61,6 +81,17 @@ impl<T: CisClientTrait + Clone + 'static> Handler<Notification> for UpdateExecut
 
     fn handle(&mut self, msg: Notification, _: &mut Self::Context) -> Self::Result {
         let res = update(&self.cis_client, &self.dino_park_settings, msg)
+            .map_err(error::ErrorRequestTimeout)?;
+        let res_text = serde_json::to_string(&res)?;
+        Ok(res_text)
+    }
+}
+
+impl<T: CisClientTrait + Clone + 'static> Handler<Bulk> for UpdateExecutor<T> {
+    type Result = Result<String, Error>;
+
+    fn handle(&mut self, msg: Bulk, _: &mut Self::Context) -> Self::Result {
+        let res = update_batch(&self.cis_client, &self.dino_park_settings, msg)
             .map_err(error::ErrorRequestTimeout)?;
         let res_text = serde_json::to_string(&res)?;
         Ok(res_text)
@@ -87,6 +118,9 @@ pub fn update_app<T: CisClientTrait + Clone + Send + Sync + 'static>(
             .max_age(3600)
             .resource("/events/update", |r| {
                 r.method(http::Method::POST).with(update_event)
+            })
+            .resource("/bulk/update", |r| {
+                r.method(http::Method::POST).with(bulk_update)
             })
             .register()
     })
