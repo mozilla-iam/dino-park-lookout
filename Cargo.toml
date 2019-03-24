@@ -5,10 +5,8 @@ authors = ["Florian Merz <flomerz@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-cis_client = { path = "../cis_client-rust" }
-cis_profile = { path = "../cis_profile-rust", features = ["aws", "vendored"] }
-#cis_client = { git = "https://github.com/fiji-flo/cis_client-rust" }
-#cis_profile = { git = "https://github.com/fiji-flo/cis_profile-rust", features = ["aws", "vendored"] }
+cis_client = { git = "https://github.com/fiji-flo/cis_client-rust", version = "0.0.2" }
+cis_profile = { git = "https://github.com/fiji-flo/cis_profile-rust", version = "0.0.2", features = ["aws", "vendored"] }
 actix = "0.7"
 actix-web = "0.7"
 futures = "0.1"
