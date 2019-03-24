@@ -5,16 +5,20 @@ extern crate cis_client;
 extern crate cis_profile;
 extern crate config;
 extern crate env_logger;
+extern crate failure;
 extern crate futures;
 extern crate reqwest;
 extern crate serde;
 
+#[macro_use]
+extern crate failure_derive;
 #[macro_use]
 extern crate log;
 #[macro_use]
 extern crate serde_derive;
 
 mod bulk;
+mod error;
 mod handler;
 mod notification;
 mod settings;
@@ -31,7 +35,8 @@ fn main() -> Result<(), String> {
     info!("building the lookout");
     let sys = actix::System::new("dino-park-lookout");
     let s = settings::Settings::new().map_err(|e| format!("unable to load settings: {}", e))?;
-    let cis_client = CisClient::from_settings(&s.cis)?;
+    let cis_client = CisClient::from_settings(&s.cis)
+        .map_err(|e| format!("unable to create cis_client: {}", e))?;
     let dino_park = s.dino_park.clone();
     // Start http server
     server::new(move || {

@@ -5,8 +5,8 @@ authors = ["Florian Merz <flomerz@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-cis_client = { git = "https://github.com/fiji-flo/cis_client-rust" }
-cis_profile = { git = "https://github.com/fiji-flo/cis_profile-rust", features = ["aws", "vendored"] }
+cis_client = { git = "https://github.com/fiji-flo/cis_client-rust", version = "0.0.2" }
+cis_profile = { git = "https://github.com/fiji-flo/cis_profile-rust", version = "0.0.2", features = ["aws", "vendored"] }
 actix = "0.7"
 actix-web = "0.7"
 futures = "0.1"
@@ -18,3 +18,5 @@ serde_derive = "1.0.80"
 reqwest = "0.9.8"
 chrono = "0.4.6"
 config = "0.9"
+failure = "0.1.5"
+failure_derive = "0.1.5"
