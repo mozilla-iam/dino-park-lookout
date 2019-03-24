@@ -80,10 +80,17 @@ impl<T: CisClientTrait + Clone + 'static> Handler<Notification> for UpdateExecut
     type Result = Result<String, Error>;
 
     fn handle(&mut self, msg: Notification, _: &mut Self::Context) -> Self::Result {
-        let res = update(&self.cis_client, &self.dino_park_settings, msg)
-            .map_err(error::ErrorRequestTimeout)?;
-        let res_text = serde_json::to_string(&res)?;
-        Ok(res_text)
+        match update(&self.cis_client, &self.dino_park_settings, &msg) {
+            Ok(res) => {
+                info!("updated profile for {}", &msg.id);
+                let res_text = serde_json::to_string(&res)?;
+                Ok(res_text)
+            }
+            Err(e) => {
+                error!("failed to update profile for {}: {}", &msg.id, e);
+                Err(error::ErrorInternalServerError(e))
+            }
+        }
     }
 }
 
@@ -91,10 +98,17 @@ impl<T: CisClientTrait + Clone + 'static> Handler<Bulk> for UpdateExecutor<T> {
     type Result = Result<String, Error>;
 
     fn handle(&mut self, msg: Bulk, _: &mut Self::Context) -> Self::Result {
-        let res = update_batch(&self.cis_client, &self.dino_park_settings, msg)
-            .map_err(error::ErrorRequestTimeout)?;
-        let res_text = serde_json::to_string(&res)?;
-        Ok(res_text)
+        match update_batch(&self.cis_client, &self.dino_park_settings, msg) {
+            Ok(res) => {
+                info!("bulk updated profiles");
+                let res_text = serde_json::to_string(&res)?;
+                Ok(res_text)
+            }
+            Err(e) => {
+                error!("failed to bulk update profiles: {}", e);
+                Err(error::ErrorInternalServerError(e))
+            }
+        }
     }
 }
 
