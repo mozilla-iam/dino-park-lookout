@@ -1,10 +1,11 @@
 [package]
 name = "dino-park-lookout"
-version = "0.1.0"
+version = "0.0.2"
 authors = ["Florian Merz <flomerz@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+condvar_store = { git = "https://github.com/fiji-flo/condvar_store", version = "0.0.2" }
 cis_client = { git = "https://github.com/fiji-flo/cis_client-rust", version = "0.0.2" }
 cis_profile = { git = "https://github.com/fiji-flo/cis_profile-rust", version = "0.0.2", features = ["aws", "vendored"] }
 actix = "0.7"
@@ -20,3 +21,5 @@ chrono = "0.4.6"
 config = "0.9"
 failure = "0.1.5"
 failure_derive = "0.1.5"
+biscuit = "0.1"
+url = "1.7.2"

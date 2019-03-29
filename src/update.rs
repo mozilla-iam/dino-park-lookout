@@ -35,7 +35,7 @@ pub fn update(
 pub fn update_batch(
     cis_client: &impl CisClientTrait,
     dp: &DinoParkSettings,
-    _: Bulk,
+    _: &Bulk,
 ) -> Result<Value, Error> {
     info!("getting bulk profiles");
     let profile_iter = cis_client.get_users_iter(None)?;
