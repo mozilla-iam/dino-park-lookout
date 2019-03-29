@@ -19,19 +19,37 @@ impl<T: TokenChecker, S> Middleware<S> for AuthMiddleware<T> {
             return Ok(Started::Done);
         }
 
-        let token = req
+        let auth_header = req
             .headers()
             .get("AUTHORIZATION")
             .map(|value| value.to_str().ok())
             .ok_or(ServiceError::Unauthorized)?;
 
-        match token {
-            Some(t) => {
-                let claim_set = self.checker.verify_and_decode(&t)?;
+        if let Some(auth_header) = auth_header {
+            if let Some(token) = get_token(auth_header) {
+                let claim_set = self.checker.verify_and_decode(&token)?;
                 check_claim_set(&claim_set, self.validation_options.clone())?;
-                Ok(Started::Done)
+                return Ok(Started::Done);
             }
-            None => Err(ServiceError::Unauthorized.into()),
         }
+        Err(ServiceError::Unauthorized.into())
+    }
+}
+
+fn get_token(auth_header: &str) -> Option<&str> {
+    match auth_header.get(0..7) {
+        Some("Bearer ") => auth_header.get(7..),
+        _ => None,
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_get_token() {
+        let token = "Bearer FOOBAR…";
+        assert_eq!(get_token(token), Some("FOOBAR…"));
     }
 }
