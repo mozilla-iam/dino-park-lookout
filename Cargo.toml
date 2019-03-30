@@ -8,6 +8,7 @@ edition = "2018"
 condvar_store = { git = "https://github.com/fiji-flo/condvar_store", version = "0.0.2" }
 cis_client = { git = "https://github.com/fiji-flo/cis_client-rust", version = "0.0.2" }
 cis_profile = { git = "https://github.com/fiji-flo/cis_profile-rust", version = "0.0.2", features = ["aws", "vendored"] }
+dino_park_gate = { git = "https://github.com/fiji-flo/dino-park-gate", version = "0.0.1" }
 actix = "0.7"
 actix-web = "0.7"
 futures = "0.1"

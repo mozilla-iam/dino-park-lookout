@@ -12,6 +12,7 @@ extern crate futures;
 extern crate reqwest;
 extern crate serde;
 extern crate url;
+extern crate dino_park_gate;
 
 #[macro_use]
 extern crate failure_derive;
@@ -21,7 +22,6 @@ extern crate log;
 extern crate serde_derive;
 
 mod app;
-mod auth;
 mod bulk;
 mod error;
 mod notification;
@@ -30,8 +30,8 @@ mod state;
 mod update;
 
 use crate::app::app;
-use crate::auth::middleware::AuthMiddleware;
-use crate::auth::provider::Provider;
+use dino_park_gate::middleware::AuthMiddleware;
+use dino_park_gate::provider::Provider;
 use actix_web::middleware;
 use actix_web::server;
 use cis_client::client::CisClient;

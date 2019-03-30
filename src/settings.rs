@@ -1,4 +1,4 @@
-use crate::auth::check::AuthValidationSettings;
+use dino_park_gate::settings::AuthValidationSettings;
 use cis_client::settings::CisSettings;
 use config::{Config, ConfigError, Environment, File};
 use std::env;

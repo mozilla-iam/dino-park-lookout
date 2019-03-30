@@ -1,5 +1,5 @@
-use crate::auth::middleware::AuthMiddleware;
-use crate::auth::provider::TokenChecker;
+use dino_park_gate::middleware::AuthMiddleware;
+use dino_park_gate::check::TokenChecker;
 use crate::bulk::Bulk;
 use crate::notification::Notification;
 use crate::settings::DinoParkSettings;
