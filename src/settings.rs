@@ -1,6 +1,6 @@
-use crate::auth::check::AuthValidationSettings;
 use cis_client::settings::CisSettings;
 use config::{Config, ConfigError, Environment, File};
+use dino_park_gate::settings::AuthValidationSettings;
 use std::env;
 
 #[derive(Debug, Deserialize, Clone)]

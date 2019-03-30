@@ -6,6 +6,7 @@ extern crate cis_client;
 extern crate cis_profile;
 extern crate condvar_store;
 extern crate config;
+extern crate dino_park_gate;
 extern crate env_logger;
 extern crate failure;
 extern crate futures;
@@ -21,7 +22,6 @@ extern crate log;
 extern crate serde_derive;
 
 mod app;
-mod auth;
 mod bulk;
 mod error;
 mod notification;
@@ -30,11 +30,11 @@ mod state;
 mod update;
 
 use crate::app::app;
-use crate::auth::middleware::AuthMiddleware;
-use crate::auth::provider::Provider;
 use actix_web::middleware;
 use actix_web::server;
 use cis_client::client::CisClient;
+use dino_park_gate::middleware::AuthMiddleware;
+use dino_park_gate::provider::Provider;
 
 fn main() -> Result<(), String> {
     ::std::env::set_var("RUST_LOG", "actix_web=info,dino_park_lookout=info");

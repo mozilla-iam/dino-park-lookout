@@ -1,5 +1,3 @@
-use crate::auth::middleware::AuthMiddleware;
-use crate::auth::provider::TokenChecker;
 use crate::bulk::Bulk;
 use crate::notification::Notification;
 use crate::settings::DinoParkSettings;
@@ -15,6 +13,8 @@ use actix_web::Json;
 use actix_web::Result;
 use actix_web::State;
 use cis_client::client::CisClientTrait;
+use dino_park_gate::check::TokenChecker;
+use dino_park_gate::middleware::AuthMiddleware;
 use std::sync::Arc;
 
 fn update_event<T: CisClientTrait + Clone + 'static>(
