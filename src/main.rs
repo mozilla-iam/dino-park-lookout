@@ -28,6 +28,7 @@ mod notification;
 mod settings;
 mod state;
 mod update;
+mod updater;
 
 use crate::app::app;
 use actix_web::middleware;
@@ -35,6 +36,8 @@ use actix_web::server;
 use cis_client::client::CisClient;
 use dino_park_gate::middleware::AuthMiddleware;
 use dino_park_gate::provider::Provider;
+use crate::updater::InternalUpdater;
+use crate::updater::Updater;
 
 fn main() -> Result<(), String> {
     ::std::env::set_var("RUST_LOG", "actix_web=info,dino_park_lookout=info");
@@ -52,10 +55,13 @@ fn main() -> Result<(), String> {
         checker: provider,
         validation_options: validation_settings.to_validation_options(),
     };
+
+    let updater = InternalUpdater::new(cis_client.clone(), dino_park.clone());
+    let client = updater.client();
     server::new(move || {
         vec![app(
-            cis_client.clone(),
             dino_park.clone(),
+            client.clone(),
             auth_middleware.clone(),
         )
         .middleware(middleware::Logger::default())
