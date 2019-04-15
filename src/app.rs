@@ -1,11 +1,9 @@
 use crate::bulk::Bulk;
+use crate::internal::internal_update;
 use crate::notification::Notification;
 use crate::settings::DinoParkSettings;
-use crate::updater::UpdaterClient;
 use crate::state::AppState;
-use crate::update::internal_update;
-use crate::update::update;
-use crate::update::update_batch;
+use crate::updater::UpdaterClient;
 use actix_web::error;
 use actix_web::http;
 use actix_web::middleware::cors::Cors;
@@ -14,12 +12,11 @@ use actix_web::HttpResponse;
 use actix_web::Json;
 use actix_web::Result;
 use actix_web::State;
-use cis_client::client::CisClientTrait;
 use cis_profile::schema::Profile;
 use dino_park_gate::check::TokenChecker;
 use dino_park_gate::middleware::AuthMiddleware;
-use std::sync::Arc;
 use serde_json::json;
+use std::sync::Arc;
 
 fn update_event<U: UpdaterClient + Clone + 'static>(
     state: State<AppState<U>>,
@@ -37,7 +34,7 @@ fn internal_update_event<U: UpdaterClient + Clone + 'static>(
         .user_id
         .value
         .as_ref()
-        .map(|s| s.as_str())
+        .map(String::as_str)
         .unwrap_or_else(|| "unknown");
     match internal_update(&state.dino_park_settings, &profile) {
         Ok(res) => {
@@ -60,7 +57,7 @@ fn bulk_update<U: UpdaterClient + Clone + 'static>(
     Ok(HttpResponse::Ok().json(json!({})))
 }
 
-pub fn app<U: UpdaterClient + Clone + Send + Sync + 'static>(
+pub fn app<U: UpdaterClient + Clone + Send + 'static>(
     dino_park_settings: DinoParkSettings,
     updater: U,
     auth_middleware: AuthMiddleware<impl TokenChecker + Clone + 'static>,

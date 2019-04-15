@@ -1,5 +1,4 @@
 use crate::settings::DinoParkSettings;
-use cis_client::client::CisClientTrait;
 use crate::updater::UpdaterClient;
 use std::sync::Arc;
 
