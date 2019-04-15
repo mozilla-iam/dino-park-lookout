@@ -24,17 +24,22 @@ extern crate serde_derive;
 mod app;
 mod bulk;
 mod error;
+mod internal;
 mod notification;
 mod settings;
 mod state;
-mod update;
+mod updater;
 
 use crate::app::app;
+use crate::updater::InternalUpdater;
+use crate::updater::Updater;
+use crate::updater::UpdaterClient;
 use actix_web::middleware;
 use actix_web::server;
 use cis_client::client::CisClient;
 use dino_park_gate::middleware::AuthMiddleware;
 use dino_park_gate::provider::Provider;
+use std::thread::spawn;
 
 fn main() -> Result<(), String> {
     ::std::env::set_var("RUST_LOG", "actix_web=info,dino_park_lookout=info");
@@ -52,14 +57,22 @@ fn main() -> Result<(), String> {
         checker: provider,
         validation_options: validation_settings.to_validation_options(),
     };
+
+    let updater = InternalUpdater::new(cis_client.clone(), dino_park.clone());
+
+    let client = updater.client();
+    let stop_client = updater.client();
+    let updater_thread = spawn(move || {
+        if let Err(e) = updater.run() {
+            error!("unable to start updater: {}", e);
+        }
+    });
     server::new(move || {
-        vec![app(
-            cis_client.clone(),
-            dino_park.clone(),
-            auth_middleware.clone(),
-        )
-        .middleware(middleware::Logger::default())
-        .boxed()]
+        vec![
+            app(dino_park.clone(), client.clone(), auth_middleware.clone())
+                .middleware(middleware::Logger::default())
+                .boxed(),
+        ]
     })
     .bind("0.0.0.0:8082")
     .unwrap()
@@ -67,5 +80,10 @@ fn main() -> Result<(), String> {
 
     info!("Started http server");
     let _ = sys.run();
+    info!("Stopped http server");
+    stop_client.stop();
+    updater_thread
+        .join()
+        .map_err(|_| String::from("failed to stop updater"))?;
     Ok(())
 }

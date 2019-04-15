@@ -1,10 +1,9 @@
 use crate::bulk::Bulk;
+use crate::internal::internal_update;
 use crate::notification::Notification;
 use crate::settings::DinoParkSettings;
 use crate::state::AppState;
-use crate::update::internal_update;
-use crate::update::update;
-use crate::update::update_batch;
+use crate::updater::UpdaterClient;
 use actix_web::error;
 use actix_web::http;
 use actix_web::middleware::cors::Cors;
@@ -13,38 +12,29 @@ use actix_web::HttpResponse;
 use actix_web::Json;
 use actix_web::Result;
 use actix_web::State;
-use cis_client::client::CisClientTrait;
 use cis_profile::schema::Profile;
 use dino_park_gate::check::TokenChecker;
 use dino_park_gate::middleware::AuthMiddleware;
+use serde_json::json;
 use std::sync::Arc;
 
-fn update_event<T: CisClientTrait + Clone + 'static>(
-    state: State<AppState<T>>,
+fn update_event<U: UpdaterClient + Clone + 'static>(
+    state: State<AppState<U>>,
     n: Json<Notification>,
 ) -> Result<HttpResponse> {
-    match update(&state.cis_client, &state.dino_park_settings, &n) {
-        Ok(res) => {
-            info!("updated profile for {}", &n.id);
-            let res_text = serde_json::to_string(&res)?;
-            Ok(HttpResponse::Ok().json(res_text))
-        }
-        Err(e) => {
-            error!("failed to update profile for {}: {}", &n.id, e);
-            Err(error::ErrorInternalServerError(e))
-        }
-    }
+    state.updater.update(n.0);
+    Ok(HttpResponse::Ok().json(json!({})))
 }
 
-fn internal_update_event<T: CisClientTrait + Clone + 'static>(
-    state: State<AppState<T>>,
+fn internal_update_event<U: UpdaterClient + Clone + 'static>(
+    state: State<AppState<U>>,
     profile: Json<Profile>,
 ) -> Result<HttpResponse> {
     let id = profile
         .user_id
         .value
         .as_ref()
-        .map(|s| s.as_str())
+        .map(String::as_str)
         .unwrap_or_else(|| "unknown");
     match internal_update(&state.dino_park_settings, &profile) {
         Ok(res) => {
@@ -59,32 +49,23 @@ fn internal_update_event<T: CisClientTrait + Clone + 'static>(
     }
 }
 
-fn bulk_update<T: CisClientTrait + Clone + 'static>(
-    state: State<AppState<T>>,
+fn bulk_update<U: UpdaterClient + Clone + 'static>(
+    state: State<AppState<U>>,
     bulk: Json<Bulk>,
 ) -> Result<HttpResponse> {
-    match update_batch(&state.cis_client, &state.dino_park_settings, &bulk) {
-        Ok(res) => {
-            info!("bulk updated profiles");
-            let res_text = serde_json::to_string(&res)?;
-            Ok(HttpResponse::Ok().json(res_text))
-        }
-        Err(e) => {
-            error!("failed to bulk update profiles: {}", e);
-            Err(error::ErrorInternalServerError(e))
-        }
-    }
+    state.updater.update_all(bulk.0);
+    Ok(HttpResponse::Ok().json(json!({})))
 }
 
-pub fn app<T: CisClientTrait + Clone + Send + Sync + 'static>(
-    cis_client: T,
+pub fn app<U: UpdaterClient + Clone + Send + 'static>(
     dino_park_settings: DinoParkSettings,
+    updater: U,
     auth_middleware: AuthMiddleware<impl TokenChecker + Clone + 'static>,
-) -> App<AppState<T>> {
+) -> App<AppState<U>> {
     let dino_park_settings_arc = Arc::new(dino_park_settings);
     let state = AppState {
-        cis_client,
         dino_park_settings: dino_park_settings_arc,
+        updater,
     };
     App::with_state(state).configure(|app| {
         let f = auth_middleware.clone();
