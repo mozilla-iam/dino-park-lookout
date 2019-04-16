@@ -1,2 +1,6 @@
 name: dino-park-lookout
 rev: latest
+env_dino_park__orgchart_update_endpoint: "http://dino-park-tree-service:80/orgchart/update"
+env_dino_park__orgchart_bulk_endpoint: "http://dino-park-tree-service:80/orgchart/bulk"
+env_dino_park__search_update_endpoint: "http://dino-park-search-service:80/search/update"
+env_dino_park__search_update_endpoint: "http://dino-park-search-service:80/search/bulk"
