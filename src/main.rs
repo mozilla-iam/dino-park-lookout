@@ -24,6 +24,7 @@ extern crate serde_derive;
 mod app;
 mod bulk;
 mod error;
+mod healthz;
 mod internal;
 mod notification;
 mod settings;
@@ -31,6 +32,7 @@ mod state;
 mod updater;
 
 use crate::app::app;
+use crate::healthz::healthz_app;
 use crate::updater::InternalUpdater;
 use crate::updater::Updater;
 use crate::updater::UpdaterClient;
@@ -70,6 +72,9 @@ fn main() -> Result<(), String> {
     server::new(move || {
         vec![
             app(dino_park.clone(), client.clone(), auth_middleware.clone())
+                .middleware(middleware::Logger::default())
+                .boxed(),
+            healthz_app()
                 .middleware(middleware::Logger::default())
                 .boxed(),
         ]
