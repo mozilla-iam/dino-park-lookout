@@ -71,10 +71,10 @@ fn main() -> Result<(), String> {
     });
     server::new(move || {
         vec![
-            app(dino_park.clone(), client.clone(), auth_middleware.clone())
+            healthz_app()
                 .middleware(middleware::Logger::default())
                 .boxed(),
-            healthz_app()
+            app(dino_park.clone(), client.clone(), auth_middleware.clone())
                 .middleware(middleware::Logger::default())
                 .boxed(),
         ]
