@@ -116,6 +116,16 @@ pub fn update(
 ) -> Result<Value, Error> {
     info!("getting profile for: {}", &n.id);
     let profile = cis_client.get_user_by(&n.id, &GetBy::UserId, None)?;
+    info!(
+        "{} is active: {}",
+        profile
+            .user_id
+            .value
+            .as_ref()
+            .map(String::as_str)
+            .unwrap_or_else(|| "?"),
+        profile.active.value.as_ref().unwrap_or_else(|| &false)
+    );
     Client::new()
         .post(&dp.orgchart_update_endpoint)
         .json(&profile)
