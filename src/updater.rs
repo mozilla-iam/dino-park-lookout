@@ -115,7 +115,9 @@ pub fn update(
     n: &Notification,
 ) -> Result<Value, Error> {
     info!("getting profile for: {}", &n.id);
-    let profile = cis_client.get_user_by(&n.id, &GetBy::UserId, None)?;
+    let profile = cis_client
+        .get_user_by(&n.id, &GetBy::UserId, None)
+        .or_else(|_| cis_client.get_inactive_user_by(&n.id, &GetBy::UserId, None))?;
     info!(
         "{} is active: {}",
         profile

@@ -331,8 +331,8 @@ dependencies = [
 
 [[package]]
 name = "cis_client"
-version = "0.0.2"
-source = "git+https://github.com/fiji-flo/cis_client-rust#3c0fd00c9a11636dc95142843bbd210f10e1dbe6"
+version = "0.0.3"
+source = "git+https://github.com/fiji-flo/cis_client-rust?branch=0.0.3#b9519ed2f65c63bd3315fb13d7bf254370cc3316"
 dependencies = [
  "biscuit 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -549,7 +549,7 @@ dependencies = [
  "actix-web 0.7.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "biscuit 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "cis_client 0.0.2 (git+https://github.com/fiji-flo/cis_client-rust)",
+ "cis_client 0.0.3 (git+https://github.com/fiji-flo/cis_client-rust?branch=0.0.3)",
  "cis_profile 0.0.2 (git+https://github.com/fiji-flo/cis_profile-rust)",
  "condvar_store 0.0.2 (git+https://github.com/fiji-flo/condvar_store)",
  "config 0.9.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -2548,7 +2548,7 @@ dependencies = [
 "checksum cfg-if 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)" = "11d43355396e872eefb45ce6342e4374ed7bc2b3a502d1b28e36d6e23c05d1f4"
 "checksum chrono 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)" = "45912881121cb26fad7c38c17ba7daa18764771836b34fab7d3fbd93ed633878"
 "checksum chrono-tz 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)" = "e0e430fad0384e4defc3dc6b1223d1b886087a8bf9b7080e5ae027f73851ea15"
-"checksum cis_client 0.0.2 (git+https://github.com/fiji-flo/cis_client-rust)" = "<none>"
+"checksum cis_client 0.0.3 (git+https://github.com/fiji-flo/cis_client-rust?branch=0.0.3)" = "<none>"
 "checksum cis_profile 0.0.2 (git+https://github.com/fiji-flo/cis_profile-rust)" = "<none>"
 "checksum cloudabi 0.0.3 (registry+https://github.com/rust-lang/crates.io-index)" = "ddfc5b9aa5d4507acaf872de71051dfd0e309860e88966e1051e462a077aac4f"
 "checksum condvar_store 0.0.2 (git+https://github.com/fiji-flo/condvar_store)" = "<none>"
