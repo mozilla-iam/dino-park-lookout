@@ -22,9 +22,9 @@ spec:
           imagePullPolicy: Always
           resources:
             requests:
-              memory: 128Mi
+              memory: 256Mi
             limits:
-              memory: 512Mi
+              memory: 1024Mi
           ports:
             - containerPort: 8082
           readinessProbe:
