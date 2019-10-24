@@ -6,8 +6,8 @@ edition = "2018"
 
 [dependencies]
 dino_park_gate = { git = "https://github.com/fiji-flo/dino-park-gate", branch = "0.1.0-beta.4", version = "0.1.0-beta.4" }
-cis_client = { git = "https://github.com/fiji-flo/cis_client-rust", branch = "0.1.3", version = "0.1.3" }
-cis_profile = { git = "https://github.com/fiji-flo/cis_profile-rust", branch = "0.1.2", version = "0.1.2" }
+cis_client = { git = "https://github.com/fiji-flo/cis_client-rust", branch = "0.1.5", version = "0.1.5" }
+cis_profile = { git = "https://github.com/fiji-flo/cis_profile-rust", branch = "0.1.3", version = "0.1.3" }
 actix-web = "1.0"
 actix-cors = "0.1"
 futures = "0.1"
