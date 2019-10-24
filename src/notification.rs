@@ -1,6 +1,3 @@
-use actix::prelude::*;
-use actix_web::Error;
-
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum Operation {
     #[serde(rename = "create")]
@@ -16,10 +13,6 @@ pub struct Notification {
     pub operation: Operation,
     pub id: String,
     pub time: f64,
-}
-
-impl Message for Notification {
-    type Result = Result<String, Error>;
 }
 
 #[cfg(test)]
