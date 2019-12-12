@@ -7,8 +7,10 @@ use std::env;
 pub struct DinoParkSettings {
     pub search_update_endpoint: String,
     pub orgchart_update_endpoint: String,
+    pub groups_update_endpoint: Option<String>,
     pub search_bulk_endpoint: String,
     pub orgchart_bulk_endpoint: String,
+    pub groups_bulk_endpoint: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
