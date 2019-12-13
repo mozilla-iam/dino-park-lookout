@@ -6,4 +6,6 @@ pub enum UpdateError {
     OrgchartUpdate(Error),
     #[fail(display = "error updating search: {}", _0)]
     SearchUpdate(Error),
+    #[fail(display = "error updating groups: {}", _0)]
+    GroupsUpdate(Error),
 }

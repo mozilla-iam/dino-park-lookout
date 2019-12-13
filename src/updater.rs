@@ -140,6 +140,14 @@ pub fn update(
         .send()
         .map_err(UpdateError::SearchUpdate)?;
     info!("updated search for: {}", &n.id);
+    if let Some(ref groups_update_endpoint) = dp.groups_update_endpoint {
+        Client::new()
+            .post(groups_update_endpoint)
+            .json(&profile)
+            .send()
+            .map_err(UpdateError::GroupsUpdate)?;
+        info!("updated groups for: {}", &n.id);
+    }
     Ok(json!({}))
 }
 
@@ -172,6 +180,18 @@ pub fn update_batch(
             .send()
             .map_err(UpdateError::SearchUpdate)?;
         info!("updated search for: {} profiles", profiles.len());
+        if let Some(ref groups_bulk_endpoint) = dp.groups_bulk_endpoint {
+            let mp = multipart::Part::text(serde_json::to_string(&profiles)?)
+                .file_name("data")
+                .mime_str("application/json")?;
+            let form = multipart::Form::new().part("data", mp);
+            Client::new()
+                .post(groups_bulk_endpoint)
+                .multipart(form)
+                .send()
+                .map_err(UpdateError::GroupsUpdate)?;
+            info!("updated groups for: {} profiles", profiles.len());
+        }
     }
     Ok(json!({}))
 }
