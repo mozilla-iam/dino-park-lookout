@@ -8,4 +8,6 @@ pub enum UpdateError {
     SearchUpdate(Error),
     #[fail(display = "error updating groups: {}", _0)]
     GroupsUpdate(Error),
+    #[fail(display = "error updating")]
+    Other,
 }

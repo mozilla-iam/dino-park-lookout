@@ -20,6 +20,7 @@ use crate::internal::app::internal_app;
 use crate::updater::InternalUpdater;
 use crate::updater::Updater;
 use crate::updater::UpdaterClient;
+use actix_rt::System;
 use actix_web::middleware::Logger;
 use actix_web::web;
 use actix_web::App;
@@ -34,7 +35,7 @@ use std::thread::spawn;
 fn main() -> Result<(), Error> {
     ::std::env::set_var(
         "RUST_LOG",
-        "actix_web=info,dino_park_lookout=info,dino_park_gate=info",
+        "actix_web=info,dino_park_lookout=info,dino_park_gate=info,cis_client=info,shared_expiry_get=info",
     );
     env_logger::init();
     info!("building the lookout");
@@ -43,9 +44,10 @@ fn main() -> Result<(), Error> {
         .map_err(|e| format_err!("unable to create cis_client: {}", e))?;
     let dino_park = s.dino_park.clone();
     let validation_settings = s.auth.validation.clone();
-    let provider = Provider::from_issuer(&s.auth.issuer)?;
+    let mut rt = tokio::runtime::Runtime::new()?;
+    let provider = rt.block_on(Provider::from_issuer(&s.auth.issuer))?;
     // Start http server
-    let updater = InternalUpdater::new(cis_client.clone(), dino_park.clone());
+    let updater = InternalUpdater::new(cis_client, dino_park.clone());
 
     let client = updater.client();
     let stop_client = updater.client();
@@ -54,7 +56,6 @@ fn main() -> Result<(), Error> {
             error!("unable to start updater: {}", e);
         }
     });
-
     let server = HttpServer::new(move || {
         let auth_middleware = SimpleAuth {
             checker: provider.clone(),
@@ -74,9 +75,9 @@ fn main() -> Result<(), Error> {
             .service(healthz_app())
     })
     .bind("0.0.0.0:8082")?;
-    server
-        .run()
-        .map_err(|_| format_err!("unable to run server!"))?;
+
+    System::new("lookout-actix-rt").block_on(async move { server.run().await })?;
+
     info!("Stopped http server");
     stop_client.stop();
     updater_thread
