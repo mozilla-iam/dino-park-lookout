@@ -1,25 +1,27 @@
 [package]
 name = "dino-park-lookout"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Florian Merz <flomerz@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-dino_park_gate = { git = "https://github.com/fiji-flo/dino-park-gate", branch = "0.2.0", version = "0.2.0" }
-cis_client = { git = "https://github.com/fiji-flo/cis_client-rust", branch = "0.2.0", version = "0.2.0" }
-cis_profile = { git = "https://github.com/fiji-flo/cis_profile-rust", branch = "0.2.0", version = "0.2.0" }
-actix-web = "1.0"
-actix-cors = "0.1"
-futures = "0.1"
+dino_park_gate = { git = "https://github.com/fiji-flo/dino-park-gate", branch = "0.3.0", version = "0.3.0" }
+cis_client = { git = "https://github.com/fiji-flo/cis_client-rust", branch = "0.4.0", version = "0.4.0" }
+cis_profile = { git = "https://github.com/fiji-flo/cis_profile-rust", branch = "0.3.1", version = "0.3.1" }
+actix-web = "2.0"
+actix-rt = "1.0"
+actix-cors = "0.2"
+futures = "0.3"
 log = "0.4"
 env_logger = "0.7"
 serde = "1.0.80"
 serde_json = "1.0.32"
 serde_derive = "1.0.80"
-reqwest = "0.9"
+reqwest = { version = "0.10", features = ["json"] }
 chrono = "0.4"
 config = "0.10"
 failure = "0.1"
 failure_derive = "0.1"
 biscuit = "0.4"
 url = "2.1"
+tokio = "0.2"

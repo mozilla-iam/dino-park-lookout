@@ -4,7 +4,13 @@ use crate::notification::Notification;
 use crate::settings::DinoParkSettings;
 use cis_client::getby::GetBy;
 use cis_client::sync::client::CisClientTrait;
+use cis_client::AsyncCisClientTrait;
+use cis_profile::schema::Profile;
 use failure::Error;
+use futures::future::join;
+use futures::future::join3;
+use futures::FutureExt;
+use futures::TryFutureExt;
 use reqwest::multipart;
 use reqwest::Client;
 use serde_json::json;
@@ -13,8 +19,9 @@ use std::sync::mpsc::channel;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 use std::thread::spawn;
+use tokio::runtime::Runtime;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum UpdateMessage {
     Notification(Notification),
     Bulk(Bulk),
@@ -54,14 +61,14 @@ impl UpdaterClient for InternalUpdaterClient {
     }
 }
 
-pub struct InternalUpdater<T: CisClientTrait> {
+pub struct InternalUpdater<T: AsyncCisClientTrait + CisClientTrait> {
     cis_client: T,
     dino_park_settings: DinoParkSettings,
     sender: Sender<UpdateMessage>,
     receiver: Receiver<UpdateMessage>,
 }
 
-impl<T: CisClientTrait + Clone + Sync + Send + 'static> InternalUpdater<T> {
+impl<T: AsyncCisClientTrait + CisClientTrait + Clone + Sync + Send + 'static> InternalUpdater<T> {
     pub fn new(cis_client: T, dino_park_settings: DinoParkSettings) -> Self {
         let (sender, receiver) = channel();
         InternalUpdater {
@@ -73,35 +80,42 @@ impl<T: CisClientTrait + Clone + Sync + Send + 'static> InternalUpdater<T> {
     }
 
     pub fn run(&self) -> Result<(), Error> {
-        info!("start processing msgs");
+        let mut rt = Runtime::new()?;
         for msg in &self.receiver {
+            debug!("got message: {:?}", msg);
             if let UpdateMessage::Stop = msg {
                 break;
             }
-            let cis_client = self.cis_client.clone();
-            let dino_park_settings = self.dino_park_settings.clone();
-            spawn(move || {
-                match msg {
-                    UpdateMessage::Notification(n) => {
-                        if let Err(e) = update(&cis_client, &dino_park_settings, &n) {
-                            warn!("unable to update profile for {}: {}", &n.id, e);
-                        };
-                    }
-                    UpdateMessage::Bulk(b) => {
-                        if let Err(e) = update_batch(&cis_client, &dino_park_settings, &b) {
+            match msg {
+                UpdateMessage::Notification(n) => {
+                    let cis_client = self.cis_client.clone();
+                    let dino_park_settings = self.dino_park_settings.clone();
+                    info!("processing");
+                    if let Err(e) = rt.block_on(update(&cis_client, &dino_park_settings, &n)) {
+                        warn!("unable to update profile for {}: {}", &n.id, e);
+                    };
+                }
+                UpdateMessage::Bulk(_) => {
+                    let cis_client = self.cis_client.clone();
+                    let dino_park_settings = self.dino_park_settings.clone();
+                    spawn(move || {
+                        debug!("processing");
+                        if let Err(e) = update_batch(&cis_client, &dino_park_settings) {
                             warn!("unable to bulk update profiles for: {}", e);
                         };
-                    }
-                    _ => {}
-                };
-            });
+                    });
+                }
+                _ => {}
+            };
         }
         info!("stop processing msgs");
         Ok(())
     }
 }
 
-impl<T: CisClientTrait> Updater<InternalUpdaterClient> for InternalUpdater<T> {
+impl<T: AsyncCisClientTrait + CisClientTrait> Updater<InternalUpdaterClient>
+    for InternalUpdater<T>
+{
     fn client(&self) -> InternalUpdaterClient {
         InternalUpdaterClient {
             sender: self.sender.clone(),
@@ -109,15 +123,20 @@ impl<T: CisClientTrait> Updater<InternalUpdaterClient> for InternalUpdater<T> {
     }
 }
 
-pub fn update(
-    cis_client: &impl CisClientTrait,
+pub async fn update(
+    cis_client: &impl AsyncCisClientTrait,
     dp: &DinoParkSettings,
     n: &Notification,
 ) -> Result<Value, Error> {
     info!("getting profile for: {}", &n.id);
-    let profile = cis_client
-        .get_user_by(&n.id, &GetBy::UserId, None)
-        .or_else(|_| cis_client.get_inactive_user_by(&n.id, &GetBy::UserId, None))?;
+    let profile = match cis_client.get_user_by(&n.id, &GetBy::UserId, None).await {
+        Ok(p) => p,
+        Err(_) => {
+            cis_client
+                .get_inactive_user_by(&n.id, &GetBy::UserId, None)
+                .await?
+        }
+    };
     info!(
         "{} is active: {}",
         profile
@@ -128,69 +147,120 @@ pub fn update(
             .unwrap_or_else(|| "?"),
         profile.active.value.as_ref().unwrap_or_else(|| &false)
     );
-    Client::new()
+    send_profile(dp, profile).await
+}
+
+pub async fn send_profile(dp: &DinoParkSettings, profile: Profile) -> Result<Value, Error> {
+    let id = profile
+        .user_id
+        .value
+        .clone()
+        .unwrap_or_else(|| String::from("unknown"));
+    let orgchart_update = Client::new()
         .post(&dp.orgchart_update_endpoint)
         .json(&profile)
         .send()
-        .map_err(UpdateError::OrgchartUpdate)?;
-    info!("updated orgchart for: {}", &n.id);
-    Client::new()
+        .map_err(UpdateError::OrgchartUpdate)
+        .map_ok(|_| info!("updated orgchart for: {}", &id));
+    let search_update = Client::new()
         .post(&dp.search_update_endpoint)
         .json(&profile)
         .send()
-        .map_err(UpdateError::SearchUpdate)?;
-    info!("updated search for: {}", &n.id);
+        .map_err(UpdateError::SearchUpdate)
+        .map_ok(|_| info!("updated search for: {}", &id));
     if let Some(ref groups_update_endpoint) = dp.groups_update_endpoint {
-        Client::new()
+        let groups_update = Client::new()
             .post(groups_update_endpoint)
             .json(&profile)
             .send()
-            .map_err(UpdateError::GroupsUpdate)?;
-        info!("updated groups for: {}", &n.id);
+            .map_err(UpdateError::GroupsUpdate)
+            .map_ok(|_| info!("updated groups for: {}", &id));
+        join3(orgchart_update, search_update, groups_update)
+            .map(|r| match r {
+                (Ok(_), Ok(_), Ok(_)) => Ok(json!({})),
+                _ => Err(UpdateError::Other.into()),
+            })
+            .await
+    } else {
+        join(orgchart_update, search_update)
+            .map(|r| match r {
+                (Ok(_), Ok(_)) => Ok(json!({})),
+                _ => Err(UpdateError::Other.into()),
+            })
+            .await
     }
-    Ok(json!({}))
 }
 
 pub fn update_batch(
     cis_client: &impl CisClientTrait,
     dp: &DinoParkSettings,
-    _: &Bulk,
 ) -> Result<Value, Error> {
-    info!("getting bulk profiles");
-    let profile_iter = cis_client.get_users_iter(None)?;
-    for profiles in profile_iter {
-        let profiles = profiles?;
-        let mp = multipart::Part::text(serde_json::to_string(&profiles)?)
-            .file_name("data")
-            .mime_str("application/json")?;
-        let form = multipart::Form::new().part("data", mp);
-        Client::new()
-            .post(&dp.orgchart_bulk_endpoint)
-            .multipart(form)
-            .send()
-            .map_err(UpdateError::OrgchartUpdate)?;
-        info!("updated orgchart for: {} profiles", profiles.len());
-        let mp = multipart::Part::text(serde_json::to_string(&profiles)?)
-            .file_name("data")
-            .mime_str("application/json")?;
-        let form = multipart::Form::new().part("data", mp);
-        Client::new()
-            .post(&dp.search_bulk_endpoint)
-            .multipart(form)
-            .send()
-            .map_err(UpdateError::SearchUpdate)?;
-        info!("updated search for: {} profiles", profiles.len());
-        if let Some(ref groups_bulk_endpoint) = dp.groups_bulk_endpoint {
-            let mp = multipart::Part::text(serde_json::to_string(&profiles)?)
-                .file_name("data")
-                .mime_str("application/json")?;
-            let form = multipart::Form::new().part("data", mp);
-            Client::new()
-                .post(groups_bulk_endpoint)
-                .multipart(form)
-                .send()
-                .map_err(UpdateError::GroupsUpdate)?;
-            info!("updated groups for: {} profiles", profiles.len());
+    debug!("getting bulk profiles");
+    let mut rt = Runtime::new()?;
+    let profiles_iter = cis_client.get_users_iter(None)?;
+    for profiles in profiles_iter {
+        if let Ok(profiles) = profiles {
+            info!("{}", profiles.len());
+            rt.block_on(
+                async move {
+                    let mp = multipart::Part::text(serde_json::to_string(&profiles)?)
+                        .file_name("data")
+                        .mime_str("application/json")?;
+                    let form = multipart::Form::new().part("data", mp);
+                    let orgchart_update = Client::new()
+                        .post(&dp.orgchart_bulk_endpoint)
+                        .multipart(form)
+                        .send()
+                        .map_err(UpdateError::OrgchartUpdate)
+                        .map_err(|e| {
+                            error!("batch: {}", e);
+                            e
+                        })
+                        .map_ok(|_| info!("updated orgchart for: {} profiles", profiles.len()));
+                    let mp = multipart::Part::text(serde_json::to_string(&profiles)?)
+                        .file_name("data")
+                        .mime_str("application/json")?;
+                    let form = multipart::Form::new().part("data", mp);
+                    let search_update = Client::new()
+                        .post(&dp.search_bulk_endpoint)
+                        .multipart(form)
+                        .send()
+                        .map_err(UpdateError::SearchUpdate)
+                        .map_err(|e| {
+                            error!("batch: {}", e);
+                            e
+                        })
+                        .map_ok(|_| info!("updated search for: {} profiles", profiles.len()));
+                    if let Some(ref groups_bulk_endpoint) = dp.groups_bulk_endpoint {
+                        let mp = multipart::Part::text(serde_json::to_string(&profiles)?)
+                            .file_name("data")
+                            .mime_str("application/json")?;
+                        let form = multipart::Form::new().part("data", mp);
+                        let groups_update = Client::new()
+                            .post(groups_bulk_endpoint)
+                            .multipart(form)
+                            .send()
+                            .map_err(UpdateError::GroupsUpdate)
+                            .map_err(|e| {
+                                error!("batch: {}", e);
+                                e
+                            })
+                            .map_ok(|_| info!("updated groups for: {} profiles", profiles.len()));
+                        join3(orgchart_update, search_update, groups_update)
+                            .map(|_| Ok::<(), Error>(()))
+                            .await
+                    } else {
+                        join(orgchart_update, search_update)
+                            .map(|_| Ok::<(), Error>(()))
+                            .await
+                    }
+                }
+                .map(|r| {
+                    if let Err(e) = r {
+                        error!("unable to process batch: {}", e)
+                    };
+                }),
+            )
         }
     }
     Ok(json!({}))

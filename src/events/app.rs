@@ -10,7 +10,7 @@ use actix_web::HttpResponse;
 use actix_web::Result;
 use serde_json::json;
 
-fn update_event<U: UpdaterClient + Clone + 'static>(
+async fn update_event<U: UpdaterClient + Clone + 'static>(
     updater: Data<U>,
     n: Json<Notification>,
 ) -> Result<HttpResponse> {
@@ -27,7 +27,8 @@ pub fn update_app<U: UpdaterClient + Clone + Send + 'static>(
                 .allowed_methods(vec!["POST"])
                 .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
                 .allowed_header(http::header::CONTENT_TYPE)
-                .max_age(3600),
+                .max_age(3600)
+                .finish(),
         )
         .data(updater)
         .service(web::resource("").route(web::post().to(update_event::<U>)))
