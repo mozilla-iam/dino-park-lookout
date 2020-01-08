@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 dino_park_gate = { git = "https://github.com/fiji-flo/dino-park-gate", branch = "0.3.0", version = "0.3.0" }
-cis_client = { git = "https://github.com/fiji-flo/cis_client-rust", branch = "0.4.0", version = "0.4.0" }
+cis_client = { git = "https://github.com/fiji-flo/cis_client-rust", branch = "0.4.0", version = "0.4.0", features = ["sync"] }
 cis_profile = { git = "https://github.com/fiji-flo/cis_profile-rust", branch = "0.3.1", version = "0.3.1" }
 actix-web = "2.0"
 actix-rt = "1.0"

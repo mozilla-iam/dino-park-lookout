@@ -263,5 +263,6 @@ pub fn update_batch(
             )
         }
     }
+    info!("done bulk updating");
     Ok(json!({}))
 }
