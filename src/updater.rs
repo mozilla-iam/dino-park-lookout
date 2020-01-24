@@ -94,16 +94,19 @@ impl<T: AsyncCisClientTrait + CisClientTrait + Clone + Sync + Send + 'static> In
                 break;
             }
             match msg {
-                UpdateMessage::Notification(n) if n.operation == Operation::Delete => {
+                // Due to CIS sending Unknown instead of Delete we treat Unknown as Delete for now.
+                UpdateMessage::Notification(n)
+                    if n.operation == Operation::Delete || n.operation == Operation::Unknown =>
+                {
                     let dino_park_settings = self.dino_park_settings.clone();
                     info!("processing");
                     if let Err(e) = rt.block_on(delete(&dino_park_settings, &n)) {
                         warn!("unable to delete profile for {}: {}", &n.id, e);
                     };
                 }
-                UpdateMessage::Notification(n) if n.operation == Operation::Unknown => {
-                    warn!("received uknown operation");
-                }
+                // UpdateMessage::Notification(n) if n.operation == Operation::Unknown => {
+                //     warn!("received unknown operation");
+                // }
                 UpdateMessage::Notification(n) => {
                     let cis_client = self.cis_client.clone();
                     let dino_park_settings = self.dino_park_settings.clone();
