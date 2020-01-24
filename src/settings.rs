@@ -11,6 +11,10 @@ pub struct DinoParkSettings {
     pub search_bulk_endpoint: String,
     pub orgchart_bulk_endpoint: String,
     pub groups_bulk_endpoint: Option<String>,
+    pub search_delete_endpoint: String,
+    pub orgchart_delete_endpoint: String,
+    pub groups_delete_endpoint: Option<String>,
+    pub uuid_by_user_id_endpoint: String,
 }
 
 #[derive(Debug, Deserialize, Clone)]

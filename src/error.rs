@@ -8,6 +8,12 @@ pub enum UpdateError {
     SearchUpdate(Error),
     #[fail(display = "error updating groups: {}", _0)]
     GroupsUpdate(Error),
+    #[fail(display = "error deleting from orgchart: {}", _0)]
+    OrgchartDelete(Error),
+    #[fail(display = "error deleting from search: {}", _0)]
+    SearchDelete(Error),
+    #[fail(display = "error deleting groups: {}", _0)]
+    GroupsDelete(Error),
     #[fail(display = "error updating")]
     Other,
 }

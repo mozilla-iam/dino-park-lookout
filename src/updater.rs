@@ -1,6 +1,7 @@
 use crate::bulk::Bulk;
 use crate::error::UpdateError;
 use crate::notification::Notification;
+use crate::notification::Operation;
 use crate::settings::DinoParkSettings;
 use cis_client::getby::GetBy;
 use cis_client::sync::client::CisClientTrait;
@@ -13,6 +14,7 @@ use futures::FutureExt;
 use futures::TryFutureExt;
 use reqwest::multipart;
 use reqwest::Client;
+use serde::Deserialize;
 use serde_json::json;
 use serde_json::Value;
 use std::sync::mpsc::channel;
@@ -26,6 +28,11 @@ pub enum UpdateMessage {
     Notification(Notification),
     Bulk(Bulk),
     Stop,
+}
+
+#[derive(Deserialize)]
+struct UuidByUserId {
+    uuid: Option<String>,
 }
 
 pub trait UpdaterClient {
@@ -87,6 +94,16 @@ impl<T: AsyncCisClientTrait + CisClientTrait + Clone + Sync + Send + 'static> In
                 break;
             }
             match msg {
+                UpdateMessage::Notification(n) if n.operation == Operation::Delete => {
+                    let dino_park_settings = self.dino_park_settings.clone();
+                    info!("processing");
+                    if let Err(e) = rt.block_on(delete(&dino_park_settings, &n)) {
+                        warn!("unable to delete profile for {}: {}", &n.id, e);
+                    };
+                }
+                UpdateMessage::Notification(n) if n.operation == Operation::Unknown => {
+                    warn!("received uknown operation");
+                }
                 UpdateMessage::Notification(n) => {
                     let cis_client = self.cis_client.clone();
                     let dino_park_settings = self.dino_park_settings.clone();
@@ -120,6 +137,51 @@ impl<T: AsyncCisClientTrait + CisClientTrait> Updater<InternalUpdaterClient>
         InternalUpdaterClient {
             sender: self.sender.clone(),
         }
+    }
+}
+
+pub async fn delete(dp: &DinoParkSettings, n: &Notification) -> Result<Value, Error> {
+    let id = n.id.clone();
+    let uuid = Client::new()
+        .get(&format!("{}/{}", dp.uuid_by_user_id_endpoint, id))
+        .send()
+        .await?
+        .json::<UuidByUserId>()
+        .await?;
+    if let Some(uuid) = uuid.uuid {
+        let orgchart_delete = Client::new()
+            .post(&format!("{}/{}", dp.orgchart_delete_endpoint, uuid))
+            .send()
+            .map_err(UpdateError::OrgchartDelete)
+            .map_ok(|_| info!("deleted from orgchart: {}", &id));
+        let search_delete = Client::new()
+            .post(&format!("{}/{}", dp.search_delete_endpoint, uuid))
+            .send()
+            .map_err(UpdateError::SearchDelete)
+            .map_ok(|_| info!("deleted from search: {}", &id));
+        if let Some(ref groups_delete_endpoint) = dp.groups_delete_endpoint {
+            let groups_delete = Client::new()
+                .delete(&format!("{}/{}", groups_delete_endpoint, uuid))
+                .send()
+                .map_err(UpdateError::GroupsDelete)
+                .map_ok(|_| info!("updated groups for: {}", &id));
+            join3(orgchart_delete, search_delete, groups_delete)
+                .map(|r| match r {
+                    (Ok(_), Ok(_), Ok(_)) => Ok(json!({})),
+                    _ => Err(UpdateError::Other.into()),
+                })
+                .await
+        } else {
+            join(orgchart_delete, search_delete)
+                .map(|r| match r {
+                    (Ok(_), Ok(_)) => Ok(json!({})),
+                    _ => Err(UpdateError::Other.into()),
+                })
+                .await
+        }
+    } else {
+        error!("cannot resolve uuid for: {}", &id);
+        Err(UpdateError::Other.into())
     }
 }
 

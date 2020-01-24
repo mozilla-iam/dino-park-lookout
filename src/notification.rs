@@ -6,6 +6,8 @@ pub enum Operation {
     Update,
     #[serde(rename = "delete")]
     Delete,
+    #[serde(rename = "foxy")]
+    Unknown,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
