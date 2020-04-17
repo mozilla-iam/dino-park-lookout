@@ -204,12 +204,7 @@ pub async fn update(
     };
     info!(
         "{} is active: {}",
-        profile
-            .user_id
-            .value
-            .as_ref()
-            .map(String::as_str)
-            .unwrap_or_else(|| "?"),
+        profile.user_id.value.as_deref().unwrap_or_else(|| "?"),
         profile.active.value.as_ref().unwrap_or_else(|| &false)
     );
     send_profile(dp, profile).await

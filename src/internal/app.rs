@@ -2,11 +2,9 @@ use crate::bulk::Bulk;
 use crate::settings::DinoParkSettings;
 use crate::updater::send_profile;
 use crate::updater::UpdaterClient;
-use actix_cors::Cors;
 use actix_web::dev::HttpServiceFactory;
 use actix_web::error;
 use actix_web::error::Error;
-use actix_web::http;
 use actix_web::web;
 use actix_web::web::Data;
 use actix_web::web::Json;
@@ -56,14 +54,6 @@ pub fn internal_app<U: UpdaterClient + Clone + Send + 'static>(
     updater: U,
 ) -> impl HttpServiceFactory {
     web::scope("")
-        .wrap(
-            Cors::new()
-                .allowed_methods(vec!["POST"])
-                .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
-                .allowed_header(http::header::CONTENT_TYPE)
-                .max_age(3600)
-                .finish(),
-        )
         .data(updater)
         .data(dino_park_settings)
         .app_data(web::JsonConfig::default().limit(1_048_576))

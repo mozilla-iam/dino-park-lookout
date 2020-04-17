@@ -39,13 +39,18 @@ fn main() -> Result<(), Error> {
     );
     env_logger::init();
     info!("building the lookout");
+    let mut rt = System::new("lookout-actix-rt");
     let s = settings::Settings::new().map_err(|e| format_err!("unable to load settings: {}", e))?;
-    let cis_client = CisClient::from_settings(&s.cis)
-        .map_err(|e| format_err!("unable to create cis_client: {}", e))?;
+    let cis_settings = s.cis.clone();
+    let cis_client = rt.block_on(async move {
+        CisClient::from_settings(&cis_settings)
+            .await
+            .map_err(|e| format_err!("unable to create cis_client: {}", e))
+    })?;
     let dino_park = s.dino_park.clone();
     let validation_settings = s.auth.validation.clone();
-    let mut rt = tokio::runtime::Runtime::new()?;
-    let provider = rt.block_on(Provider::from_issuer(&s.auth.issuer))?;
+    let issuer = s.auth.issuer;
+    let provider = rt.block_on(async move { Provider::from_issuer(&issuer).await })?;
     // Start http server
     let updater = InternalUpdater::new(cis_client, dino_park.clone());
 
@@ -76,7 +81,7 @@ fn main() -> Result<(), Error> {
     })
     .bind("0.0.0.0:8082")?;
 
-    System::new("lookout-actix-rt").block_on(async move { server.run().await })?;
+    rt.block_on(async move { server.run().await })?;
 
     info!("Stopped http server");
     stop_client.stop();
