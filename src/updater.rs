@@ -10,6 +10,7 @@ use cis_profile::schema::Profile;
 use failure::Error;
 use futures::future::join;
 use futures::future::join3;
+use futures::future::join4;
 use futures::FutureExt;
 use futures::TryFutureExt;
 use reqwest::multipart;
@@ -162,22 +163,32 @@ pub async fn delete(dp: &DinoParkSettings, n: &Notification) -> Result<Value, Er
             .send()
             .map_err(UpdateError::SearchDelete)
             .map_ok(|_| info!("deleted from search: {}", &id));
+        let picture_delete = Client::new()
+            .post(&format!("{}/{}", dp.picture_delete_endpoint, uuid))
+            .send()
+            .map_err(UpdateError::SearchDelete)
+            .map_ok(|_| info!("deleted from pictures: {}", &id));
         if let Some(ref groups_delete_endpoint) = dp.groups_delete_endpoint {
             let groups_delete = Client::new()
                 .delete(&format!("{}/{}", groups_delete_endpoint, uuid))
                 .send()
                 .map_err(UpdateError::GroupsDelete)
                 .map_ok(|_| info!("updated groups for: {}", &id));
-            join3(orgchart_delete, search_delete, groups_delete)
+            join4(
+                orgchart_delete,
+                search_delete,
+                picture_delete,
+                groups_delete,
+            )
+            .map(|r| match r {
+                (Ok(_), Ok(_), Ok(_), Ok(_)) => Ok(json!({})),
+                _ => Err(UpdateError::Other.into()),
+            })
+            .await
+        } else {
+            join3(orgchart_delete, search_delete, picture_delete)
                 .map(|r| match r {
                     (Ok(_), Ok(_), Ok(_)) => Ok(json!({})),
-                    _ => Err(UpdateError::Other.into()),
-                })
-                .await
-        } else {
-            join(orgchart_delete, search_delete)
-                .map(|r| match r {
-                    (Ok(_), Ok(_)) => Ok(json!({})),
                     _ => Err(UpdateError::Other.into()),
                 })
                 .await

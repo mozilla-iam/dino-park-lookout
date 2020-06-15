@@ -13,6 +13,7 @@ pub struct DinoParkSettings {
     pub groups_bulk_endpoint: Option<String>,
     pub search_delete_endpoint: String,
     pub orgchart_delete_endpoint: String,
+    pub picture_delete_endpoint: String,
     pub groups_delete_endpoint: Option<String>,
     pub uuid_by_user_id_endpoint: String,
 }
@@ -35,7 +36,7 @@ impl Settings {
         let file = env::var("DPL_SETTINGS").unwrap_or_else(|_| String::from(".settings"));
         let mut s = Config::new();
         s.merge(File::with_name(&file))?;
-        s.merge(Environment::new().separator("__"))?;
+        s.merge(Environment::new().separator("__").prefix("dp"))?;
         s.try_into()
     }
 }

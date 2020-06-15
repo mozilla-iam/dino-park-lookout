@@ -36,10 +36,10 @@ spec:
               value: "{{ .Values.force_update | default 0 }}"
             - name: DPL_SETTINGS
               value: "/data/.settings-{{ .Values.env }}.json"
-            {{- range $key, $value := .Values }}{{ if hasPrefix "env_" $key }}
-            - name: {{ $key | trimPrefix "env_" }}
+            {{- range $key, $value := .Values.settings }}
+            - name: DP_{{ $key | upper }}
               value: "{{ $value }}"
-            {{- end }}{{- end }}
+            {{- end }}
           volumeMounts:
             - name: settings-secrets
               mountPath: "/data"

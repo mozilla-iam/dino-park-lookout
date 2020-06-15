@@ -1,2 +1,6 @@
 env: dev
 namespace: dinopark-dev
+settings:
+    dino_park__groups_update_endpoint: "http://dino-park-packs-service:80/internal/update/user"
+    dino_park__groups_bulk_endpoint: "http://dino-park-packs-service:80/internal/update/bulk"
+    dino_park__groups_delete_endpoint: "http://dino-park-packs-service:80/internal/delete"
