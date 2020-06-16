@@ -164,7 +164,7 @@ pub async fn delete(dp: &DinoParkSettings, n: &Notification) -> Result<Value, Er
             .map_err(UpdateError::SearchDelete)
             .map_ok(|_| info!("deleted from search: {}", &id));
         let picture_delete = Client::new()
-            .post(&format!("{}/{}", dp.picture_delete_endpoint, uuid))
+            .delete(&format!("{}/{}", dp.picture_delete_endpoint, uuid))
             .send()
             .map_err(UpdateError::PicturesDelete)
             .map_ok(|_| info!("deleted from pictures: {}", &id));
