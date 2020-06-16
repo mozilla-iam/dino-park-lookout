@@ -166,7 +166,7 @@ pub async fn delete(dp: &DinoParkSettings, n: &Notification) -> Result<Value, Er
         let picture_delete = Client::new()
             .post(&format!("{}/{}", dp.picture_delete_endpoint, uuid))
             .send()
-            .map_err(UpdateError::SearchDelete)
+            .map_err(UpdateError::PicturesDelete)
             .map_ok(|_| info!("deleted from pictures: {}", &id));
         if let Some(ref groups_delete_endpoint) = dp.groups_delete_endpoint {
             let groups_delete = Client::new()
