@@ -16,7 +16,9 @@ use serde_json::json;
 use serde_json::Value;
 
 pub async fn internal_update(dp: &DinoParkSettings, profile: Profile) -> Result<Value, Error> {
-    send_profile(dp, profile).map_err(Into::into).await
+    send_profile(dp, profile)
+        .map_err(error::ErrorInternalServerError)
+        .await
 }
 
 async fn internal_update_event(

@@ -3,9 +3,12 @@ rev: latest
 settings:
     dino_park__search_update_endpoint: "http://dino-park-search-service:80/search/update"
     dino_park__orgchart_update_endpoint: "http://dino-park-tree-service:80/orgchart/update"
+    dino_park__groups_update_endpoint: "http://dino-park-packs-service:80/internal/update/user"
     dino_park__search_bulk_endpoint: "http://dino-park-search-service:80/search/bulk"
     dino_park__orgchart_bulk_endpoint: "http://dino-park-tree-service:80/orgchart/bulk"
+    dino_park__groups_bulk_endpoint: "http://dino-park-packs-service:80/internal/update/bulk"
     dino_park__search_delete_endpoint: "http://dino-park-search-service:80/search/delete"
     dino_park__orgchart_delete_endpoint: "http://dino-park-tree-service:80/orgchart/delete"
+    dino_park__groups_delete_endpoint: "http://dino-park-packs-service:80/internal/delete"
     dino_park__picture_delete_endpoint: "http://dino-park-fossil-service:80/internal/delete"
     dino_park__uuid_by_user_id_endpoint: "http://dino-park-search-service:80/search/uuid"
