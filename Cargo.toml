@@ -10,7 +10,6 @@ cis_profile = { git = "https://github.com/mozilla-iam/cis_profile-rust", branch 
 dino_park_gate = { git = "https://github.com/mozilla-iam/dino-park-gate", branch = "0.8", version = "0.8" }
 actix-web = "3"
 actix-rt = "1"
-actix-cors = "0.3"
 futures = "0.3"
 log = "0.4"
 env_logger = "0.7"
