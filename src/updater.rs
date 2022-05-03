@@ -215,8 +215,8 @@ pub async fn update(
     };
     info!(
         "{} is active: {}",
-        profile.user_id.value.as_deref().unwrap_or_else(|| "?"),
-        profile.active.value.as_ref().unwrap_or_else(|| &false)
+        profile.user_id.value.as_deref().unwrap_or("?"),
+        profile.active.value.as_ref().unwrap_or(&false)
     );
     send_profile(dp, profile).await
 }
@@ -269,70 +269,68 @@ pub fn update_batch(
     debug!("getting bulk profiles");
     let mut rt = Runtime::new()?;
     let profiles_iter = cis_client.get_users_iter(None)?;
-    for profiles in profiles_iter {
-        if let Ok(profiles) = profiles {
-            info!("{}", profiles.len());
-            rt.block_on(
-                async move {
+    for profiles in profiles_iter.flatten() {
+        info!("{}", profiles.len());
+        rt.block_on(
+            async move {
+                let mp = multipart::Part::text(serde_json::to_string(&profiles)?)
+                    .file_name("data")
+                    .mime_str("application/json")?;
+                let form = multipart::Form::new().part("data", mp);
+                let orgchart_update = Client::new()
+                    .post(&dp.orgchart_bulk_endpoint)
+                    .multipart(form)
+                    .send()
+                    .map_err(UpdateError::OrgchartUpdate)
+                    .map_err(|e| {
+                        error!("batch: {}", e);
+                        e
+                    })
+                    .map_ok(|_| info!("updated orgchart for: {} profiles", profiles.len()));
+                let mp = multipart::Part::text(serde_json::to_string(&profiles)?)
+                    .file_name("data")
+                    .mime_str("application/json")?;
+                let form = multipart::Form::new().part("data", mp);
+                let search_update = Client::new()
+                    .post(&dp.search_bulk_endpoint)
+                    .multipart(form)
+                    .send()
+                    .map_err(UpdateError::SearchUpdate)
+                    .map_err(|e| {
+                        error!("batch: {}", e);
+                        e
+                    })
+                    .map_ok(|_| info!("updated search for: {} profiles", profiles.len()));
+                if let Some(ref groups_bulk_endpoint) = dp.groups_bulk_endpoint {
                     let mp = multipart::Part::text(serde_json::to_string(&profiles)?)
                         .file_name("data")
                         .mime_str("application/json")?;
                     let form = multipart::Form::new().part("data", mp);
-                    let orgchart_update = Client::new()
-                        .post(&dp.orgchart_bulk_endpoint)
+                    let groups_update = Client::new()
+                        .post(groups_bulk_endpoint)
                         .multipart(form)
                         .send()
-                        .map_err(UpdateError::OrgchartUpdate)
+                        .map_err(UpdateError::GroupsUpdate)
                         .map_err(|e| {
                             error!("batch: {}", e);
                             e
                         })
-                        .map_ok(|_| info!("updated orgchart for: {} profiles", profiles.len()));
-                    let mp = multipart::Part::text(serde_json::to_string(&profiles)?)
-                        .file_name("data")
-                        .mime_str("application/json")?;
-                    let form = multipart::Form::new().part("data", mp);
-                    let search_update = Client::new()
-                        .post(&dp.search_bulk_endpoint)
-                        .multipart(form)
-                        .send()
-                        .map_err(UpdateError::SearchUpdate)
-                        .map_err(|e| {
-                            error!("batch: {}", e);
-                            e
-                        })
-                        .map_ok(|_| info!("updated search for: {} profiles", profiles.len()));
-                    if let Some(ref groups_bulk_endpoint) = dp.groups_bulk_endpoint {
-                        let mp = multipart::Part::text(serde_json::to_string(&profiles)?)
-                            .file_name("data")
-                            .mime_str("application/json")?;
-                        let form = multipart::Form::new().part("data", mp);
-                        let groups_update = Client::new()
-                            .post(groups_bulk_endpoint)
-                            .multipart(form)
-                            .send()
-                            .map_err(UpdateError::GroupsUpdate)
-                            .map_err(|e| {
-                                error!("batch: {}", e);
-                                e
-                            })
-                            .map_ok(|_| info!("updated groups for: {} profiles", profiles.len()));
-                        join3(orgchart_update, search_update, groups_update)
-                            .map(|_| Ok::<(), Error>(()))
-                            .await
-                    } else {
-                        join(orgchart_update, search_update)
-                            .map(|_| Ok::<(), Error>(()))
-                            .await
-                    }
+                        .map_ok(|_| info!("updated groups for: {} profiles", profiles.len()));
+                    join3(orgchart_update, search_update, groups_update)
+                        .map(|_| Ok::<(), Error>(()))
+                        .await
+                } else {
+                    join(orgchart_update, search_update)
+                        .map(|_| Ok::<(), Error>(()))
+                        .await
                 }
-                .map(|r| {
-                    if let Err(e) = r {
-                        error!("unable to process batch: {}", e)
-                    };
-                }),
-            )
-        }
+            }
+            .map(|r| {
+                if let Err(e) = r {
+                    error!("unable to process batch: {}", e)
+                };
+            }),
+        )
     }
     info!("done bulk updating");
     Ok(json!({}))
