@@ -1,4 +1,4 @@
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub enum Operation {
     #[serde(rename = "create")]
     Create,
