@@ -170,7 +170,7 @@ pub async fn delete(dp: &DinoParkSettings, n: &Notification) -> Result<Value, Er
             .map_ok(|_| info!("deleted from pictures: {}", &id));
         if let Some(ref groups_delete_endpoint) = dp.groups_delete_endpoint {
             let groups_delete = Client::new()
-                .delete(&format!("{}/{}", groups_delete_endpoint, uuid))
+                .delete(&format!("{groups_delete_endpoint}/{uuid}"))
                 .send()
                 .map_err(UpdateError::GroupsDelete)
                 .map_ok(|_| info!("updated groups for: {}", &id));
