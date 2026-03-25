@@ -147,30 +147,30 @@ impl<T: AsyncCisClientTrait + CisClientTrait> Updater<InternalUpdaterClient>
 pub async fn delete(dp: &DinoParkSettings, n: &Notification) -> Result<Value, Error> {
     let id = n.id.clone();
     let uuid = Client::new()
-        .get(&format!("{}/{}", dp.uuid_by_user_id_endpoint, id))
+        .get(format!("{}/{}", dp.uuid_by_user_id_endpoint, id))
         .send()
         .await?
         .json::<UuidByUserId>()
         .await?;
     if let Some(uuid) = uuid.uuid {
         let orgchart_delete = Client::new()
-            .post(&format!("{}/{}", dp.orgchart_delete_endpoint, uuid))
+            .post(format!("{}/{}", dp.orgchart_delete_endpoint, uuid))
             .send()
             .map_err(UpdateError::OrgchartDelete)
             .map_ok(|_| info!("deleted from orgchart: {}", &id));
         let search_delete = Client::new()
-            .post(&format!("{}/{}", dp.search_delete_endpoint, uuid))
+            .post(format!("{}/{}", dp.search_delete_endpoint, uuid))
             .send()
             .map_err(UpdateError::SearchDelete)
             .map_ok(|_| info!("deleted from search: {}", &id));
         let picture_delete = Client::new()
-            .delete(&format!("{}/{}", dp.picture_delete_endpoint, uuid))
+            .delete(format!("{}/{}", dp.picture_delete_endpoint, uuid))
             .send()
             .map_err(UpdateError::PicturesDelete)
             .map_ok(|_| info!("deleted from pictures: {}", &id));
         if let Some(ref groups_delete_endpoint) = dp.groups_delete_endpoint {
             let groups_delete = Client::new()
-                .delete(&format!("{groups_delete_endpoint}/{uuid}"))
+                .delete(format!("{groups_delete_endpoint}/{uuid}"))
                 .send()
                 .map_err(UpdateError::GroupsDelete)
                 .map_ok(|_| info!("updated groups for: {}", &id));
