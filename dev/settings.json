@@ -1,0 +1,48 @@
+{
+  "comment": [
+    "DEBT: The config parser expects all keys to be defined. It does not use",
+    "the fallback to using the default values on `None`. This comment section",
+    "is also a hack.",
+    "See also:",
+    "* src/settings.rs;",
+    "* the `config` dependency."
+  ],
+  "auth": {
+    "issuer": "https://dev.mozilla-dev.auth0.com/",
+    "validation": {
+      "audience": "hook.dev.sso.allizom.org"
+    }
+  },
+  "cis": {
+    "client_config": {
+      "client_id": "",
+      "client_secret": "",
+      "audience": "",
+      "token_endpoint": "https://idp",
+      "scopes": ""
+    },
+    "sign_keys": {
+      "source": "none"
+    },
+    "verify_keys": {
+      "source": "none"
+    },
+    "person_api_user_endpoint": "https://person-api.cis",
+    "person_api_users_endpoint": "https://person-api.cis",
+    "change_api_user_endpoint": "https://change-api.cis",
+    "change_api_users_endpoint": "https://change-api.cis"
+  },
+  "dino_park": {
+    "groups_bulk_endpoint": "http://packs/internal/update/bulk",
+    "groups_delete_endpoint": "http://packs/internal/delete",
+    "groups_update_endpoint": "http://packs/internal/update/user",
+    "orgchart_bulk_endpoint": "http://tree/orgchart/bulk",
+    "orgchart_delete_endpoint": "http://tree/orgchart/delete",
+    "orgchart_update_endpoint": "http://tree/orgchart/update",
+    "picture_delete_endpoint": "http://fossil/internal/delete",
+    "search_bulk_endpoint": "http://search/search/bulk",
+    "search_delete_endpoint": "http://search/search/delete",
+    "search_update_endpoint": "http://search/search/update",
+    "uuid_by_user_id_endpoint": "http://search/search/uuid"
+  }
+}
