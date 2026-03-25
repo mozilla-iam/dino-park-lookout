@@ -303,30 +303,13 @@ checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
 
 [[package]]
 name = "biscuit"
-version = "0.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "359ca61641a4d4afcb8a1eefa59d17e84808fd9dc10dcc753a7b8def542bbb8c"
-dependencies = [
- "chrono",
- "data-encoding",
- "num 0.2.1",
- "once_cell",
- "ring",
- "serde 1.0.228",
- "serde_derive",
- "serde_json",
- "url",
-]
-
-[[package]]
-name = "biscuit"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0dee631cea28b00e115fd355a1adedc860b155096941dc01259969eabd434a37"
 dependencies = [
  "chrono",
  "data-encoding",
- "num 0.3.1",
+ "num",
  "once_cell",
  "ring",
  "serde 1.0.228",
@@ -461,7 +444,7 @@ name = "cis_client"
 version = "0.9.1"
 source = "git+https://github.com/mozilla-iam/cis_client-rust?tag=0.9.1#9eb633cdfcc2b131dde830f9f88568aa2e7ca221"
 dependencies = [
- "biscuit 0.5.0",
+ "biscuit",
  "chrono",
  "cis_profile",
  "futures",
@@ -481,12 +464,12 @@ name = "cis_profile"
 version = "0.6.2"
 source = "git+https://github.com/mozilla-iam/cis_profile-rust?tag=0.6.2#4371727865a30b135e36822fb7f611884c42a89c"
 dependencies = [
- "biscuit 0.5.0",
+ "biscuit",
  "chrono",
  "chrono-tz",
  "dino_park_trust",
  "futures",
- "num-bigint 0.3.3",
+ "num-bigint",
  "openssl",
  "reqwest",
  "ring",
@@ -705,7 +688,7 @@ version = "0.3.8"
 dependencies = [
  "actix-rt",
  "actix-web",
- "biscuit 0.4.2",
+ "biscuit",
  "chrono",
  "cis_client",
  "cis_profile",
@@ -729,7 +712,7 @@ name = "dino-park-oidc"
 version = "0.1.0"
 source = "git+https://github.com/mozilla-iam/dino-park-oidc?branch=0.1#1c1ade6e4bd23871857842ea8d6525f8cc87abdf"
 dependencies = [
- "biscuit 0.5.0",
+ "biscuit",
  "chrono",
  "futures",
  "log",
@@ -749,7 +732,7 @@ source = "git+https://github.com/mozilla-iam/dino-park-gate?tag=0.10.8#805b83a70
 dependencies = [
  "actix-service",
  "actix-web",
- "biscuit 0.5.0",
+ "biscuit",
  "bitflags 1.3.2",
  "chrono",
  "dino-park-oidc",
@@ -1482,40 +1465,15 @@ dependencies = [
 
 [[package]]
 name = "num"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b8536030f9fea7127f841b45bb6243b27255787fb4eb83958aa1ef9d2fdc0c36"
-dependencies = [
- "num-bigint 0.2.6",
- "num-complex 0.2.4",
- "num-integer",
- "num-iter",
- "num-rational 0.2.4",
- "num-traits 0.2.15",
-]
-
-[[package]]
-name = "num"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8b7a8e9be5e039e2ff869df49155f1c06bd01ade2117ec783e56ab0932b67a8f"
 dependencies = [
- "num-bigint 0.3.3",
- "num-complex 0.3.1",
+ "num-bigint",
+ "num-complex",
  "num-integer",
  "num-iter",
- "num-rational 0.3.2",
- "num-traits 0.2.15",
-]
-
-[[package]]
-name = "num-bigint"
-version = "0.2.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "090c7f9998ee0ff65aa5b723e4009f7b217707f1fb5ea551329cc4d6231fb304"
-dependencies = [
- "autocfg",
- "num-integer",
+ "num-rational",
  "num-traits 0.2.15",
 ]
 
@@ -1527,16 +1485,6 @@ checksum = "5f6f7833f2cbf2360a6cfd58cd41a53aa7a90bd4c202f5b1c7dd2ed73c57b2c3"
 dependencies = [
  "autocfg",
  "num-integer",
- "num-traits 0.2.15",
-]
-
-[[package]]
-name = "num-complex"
-version = "0.2.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b6b19411a9719e753aff12e5187b74d60d3dc449ec3f4dc21e3989c3f554bc95"
-dependencies = [
- "autocfg",
  "num-traits 0.2.15",
 ]
 
@@ -1578,24 +1526,12 @@ dependencies = [
 
 [[package]]
 name = "num-rational"
-version = "0.2.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5c000134b5dbf44adc5cb772486d335293351644b801551abe8f75c84cfa4aef"
-dependencies = [
- "autocfg",
- "num-bigint 0.2.6",
- "num-integer",
- "num-traits 0.2.15",
-]
-
-[[package]]
-name = "num-rational"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "12ac428b1cb17fce6f731001d307d351ec70a6d202fc2e60f7d4c5e42d8f4f07"
 dependencies = [
  "autocfg",
- "num-bigint 0.3.3",
+ "num-bigint",
  "num-integer",
  "num-traits 0.2.15",
 ]
