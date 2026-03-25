@@ -88,7 +88,7 @@ impl<T: AsyncCisClientTrait + CisClientTrait + Clone + Sync + Send + 'static> In
     }
 
     pub fn run(&self) -> Result<(), Error> {
-        let mut rt = Runtime::new()?;
+        let rt = Runtime::new()?;
         for msg in &self.receiver {
             debug!("got message: {:?}", msg);
             if let UpdateMessage::Stop = msg {
@@ -267,7 +267,7 @@ pub fn update_batch(
     dp: &DinoParkSettings,
 ) -> Result<Value, Error> {
     debug!("getting bulk profiles");
-    let mut rt = Runtime::new()?;
+    let rt = Runtime::new()?;
     let profiles_iter = cis_client.get_users_iter(None)?;
     for profiles in profiles_iter.flatten() {
         info!("{}", profiles.len());

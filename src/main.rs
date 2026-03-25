@@ -39,7 +39,7 @@ fn main() -> Result<(), Error> {
     );
     env_logger::init();
     info!("building the lookout");
-    let mut rt = System::new();
+    let rt = System::new();
     let s = settings::Settings::new().map_err(|e| format_err!("unable to load settings: {}", e))?;
     let cis_settings = s.cis.clone();
     let cis_client = rt.block_on(async move {
