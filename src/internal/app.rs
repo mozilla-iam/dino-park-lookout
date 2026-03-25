@@ -56,9 +56,9 @@ pub fn internal_app<U: UpdaterClient + Clone + Send + 'static>(
     updater: U,
 ) -> impl HttpServiceFactory {
     web::scope("")
-        .app_data(updater)
-        .app_data(dino_park_settings)
-        .app_data(web::JsonConfig::default().limit(1_048_576))
+        .app_data(Data::new(updater))
+        .app_data(Data::new(dino_park_settings))
+        .app_data(Data::new(web::JsonConfig::default().limit(1_048_576)))
         .service(web::resource("/bulk").route(web::post().to(bulk_update::<U>)))
         .service(web::resource("/update").route(web::post().to(internal_update_event)))
 }
