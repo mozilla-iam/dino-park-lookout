@@ -20,6 +20,6 @@ pub fn update_app<U: UpdaterClient + Clone + Send + 'static>(
     updater: U,
 ) -> impl HttpServiceFactory {
     web::scope("/update")
-        .data(updater)
+        .app_data(updater)
         .service(web::resource("").route(web::post().to(update_event::<U>)))
 }
