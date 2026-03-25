@@ -12,3 +12,9 @@ services:
     - ../dev/settings.json:/root/.settings.json
     ports:
     - 127.0.0.1:8082:8082
+    develop:
+      watch:
+        - path: ../src
+          action: rebuild
+        - path: ../Cargo.lock
+          action: rebuild
